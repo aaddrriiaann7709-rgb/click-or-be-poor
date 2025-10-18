@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Clicker Game with Messages and Bible Verse</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        height: 100vh;
+        margin: 0;
+    }
+    #left, #center, #right {
+        flex: 1;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+    }
+    #left { background-color: #f0f0f0; border-right: 2px solid #ccc; }
+    #center { background-color: #e0f7ff; border-left: 2px solid #ccc; border-right: 2px solid #ccc; }
+    #right { background-color: #fffbe0; border-left: 2px solid #ccc; text-align: center; }
+    button {
+        padding: 10px 20px;
+        margin: 5px;
+        font-size: 16px;
+    }
+    #money, #multiplier {
+        font-size: 18px;
+        margin: 10px 0;
+    }
+</style>
+</head>
+<body>
+    <div id="left">
+        <h2>Owner says:</h2>
+        <p id="ownerMessage">if you keep clicking the button fo 5 days straight you'll have 12e+36 like meee</p>
+    </div>
+
+    <div id="center">
+        <h2>Clicker Game</h2>
+        <div id="money">Money: 0</div>
+        <button id="clickButton">Click me!</button>
+        <div>
+            <button id="buyMultiplier">Buy Multiplier (Cost: 50)</button>
+            <div id="multiplier">Multiplier: 1</div>
+        </div>
+        <div>
+            <button id="saveBtn">Save Progress</button>
+            <button id="loadBtn">Load Progress</button>
+            <input type="file" id="loadFile" style="display:none;">
+        </div>
+    </div>
+
+    <div id="right">
+        <h2>Bible Verse:</h2>
+        <p id="bibleVerse">"I can do all things through Christ who strengthens me." - Philippians 4:13</p>
+    </div>
+
+<script>
+    // Game variables
+    let money = 0;
+    let multiplier = 1;
+    let multiplierCost = 50;
+
+    const moneyDiv = document.getElementById('money');
+    const multiplierDiv = document.getElementById('multiplier');
+    const clickButton = document.getElementById('clickButton');
+    const buyMultiplier = document.getElementById('buyMultiplier');
+    const saveBtn = document.getElementById('saveBtn');
+    const loadBtn = document.getElementById('loadBtn');
+    const loadFile = document.getElementById('loadFile');
+
+    function formatNumber(num) {
+        if (num >= 1e6) return num.toExponential(2);
+        return num.toFixed(2);
+    }
+
+    function updateUI() {
+        moneyDiv.textContent = `Money: ${formatNumber(money)}`;
+        multiplierDiv.textContent = `Multiplier: ${formatNumber(multiplier)}`;
+        buyMultiplier.textContent = `Buy Multiplier (Cost: ${formatNumber(multiplierCost)})`;
+    }
+
+    clickButton.addEventListener('click', () => {
+        money += 1 * multiplier;
+        updateUI();
+    });
+
+    buyMultiplier.addEventListener('click', () => {
+        if (money >= multiplierCost) {
+            money -= multiplierCost;
+            multiplier *= 1.5;
+            multiplierCost = Math.floor(multiplierCost * 2);
+            updateUI();
+        } else {
+            alert("get more money u dont have enough");
+        }
+    });
+
+    // Save to JSON
+    saveBtn.addEventListener('click', () => {
+        const saveData = { money, multiplier, multiplierCost };
+        const blob = new Blob([JSON.stringify(saveData)], {type: "application/json"});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = "clickerprogress.json";
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // Load from JSON
+    loadBtn.addEventListener('click', () => { loadFile.click(); });
+    loadFile.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                money = data.money || 0;
+                multiplier = data.multiplier || 1;
+                multiplierCost = data.multiplierCost || 50;
+                updateUI();
+            } catch {
+                alert("Invalid save file!");
+            }
+        };
+        reader.readAsText(file);
+    });
+
+    updateUI();
+</script>
+</body>
+</html>
